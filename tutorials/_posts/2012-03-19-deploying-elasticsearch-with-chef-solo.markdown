@@ -72,11 +72,18 @@ We won't be using roles in this tutorial, though.
 The most important concept is a **cookbook**, containing various **recipes** which describe, in detail, how we like our _node_ to be set up.
 A _recipe_ uses a variety of [_resources_](http://wiki.opscode.com/display/chef/Resources) to describe these details, such as setting some
 default node properties, creating directories, creating configuration files with specific content, installing packages,
-downloading files from the internet, or executing arbitrary scripts and commands.
+downloading files from the internet, or executing arbitrary scripts and commands. Cookbooks hold together recipes, template files,
+_Chef_ extensions, etc.
 
-A recipe can also load additional data from **data bags**. [_Data bags_](http://wiki.opscode.com/display/chef/Data+Bags) can contain
-arbitrary information, such as user credentials, API tokens and other things not specific to a certain recipe. We won't be using
-data bags in this tutorial, because we will store all information directly within the node configuration.
+Have a look at the [**ElasticSearch cookbook**](https://github.com/karmi/cookbook-elasticsearch) we'll be using in this tutorial,
+to get a sense of how cookbooks are organized and how do they work. The
+[recipe](https://github.com/karmi/cookbook-elasticsearch/blob/master/recipes/default.rb) is written in a simple Ruby-based domain
+specific language, and should be pretty understandable. Check out also the
+[cookbook templates](https://github.com/karmi/cookbook-elasticsearch/tree/master/templates/default).
+
+A recipe can also load additional data from **data bags**. [_Data bags_](http://wiki.opscode.com/display/chef/Data+Bags) are simple
+JSON documents, and can contain arbitrary information, such as user credentials, API tokens and other things not specific to a certain recipe.
+We won't be using data bags in this tutorial, because we will store all information directly within the node configuration.
 
 
 ## Our goals ###
@@ -84,21 +91,21 @@ data bags in this tutorial, because we will store all information directly withi
 OK, now we're familiar with the essential parts of _Chef_. What are our goals, then? How would we like to have our ElasticSearch server to be set up?
 In fact, we would like a number of things:
 
-* First of all, installing a specific version of ElasticSearch on the node
-* Creating an `elasticsearch.yml` file with custom configuration
-* Creating a separate user to run ElasticSearch
-* Registering a service to start ElasticSearch automatically on server boot
-* Increasing the open files limit for the _elasticsearch_ user
-* Setting the memory limits and other settings for the JVM
-* Monitoring the ElasticSearch process and cluster health with [_Monit_](http://mmonit.com/monit/)
-* Installing the [_Nginx_](http://nginx.org/) web server and use it as a proxy for ElasticSearch
-* Storing user credentials for HTTP authentication with _Nginx_
+* First of all, install a specific version of ElasticSearch on the node
+* Create a `elasticsearch.yml` file with custom configuration
+* Create a separate user to run ElasticSearch
+* Register a service to start ElasticSearch automatically on server boot
+* Increase the open files limit for the _elasticsearch_ user
+* Configure the memory limits and other settings for the JVM
+* Monitor the ElasticSearch process and cluster health with [_Monit_](http://mmonit.com/monit/)
+* Install the [_Nginx_](http://nginx.org/) web server and use it as a proxy for ElasticSearch
+* Store user credentials for HTTP authentication with _Nginx_
 
 And optionally:
 
-* Installing the [_AWS Cloud_](http://github.com/elasticsearch/elasticsearch-cloud-aws) plugin
-* Configuring the _AWS Cloud_ plugin with proper credentials to use the
-  [EC2 discovery](http://www.elasticsearch.org/guide/reference/modules/discovery/ec2.html) feature and
+* Install the [_AWS Cloud_](http://github.com/elasticsearch/elasticsearch-cloud-aws) plugin
+* Configure the _AWS Cloud_ plugin with proper credentials to use the
+  [EC2 discovery](http://www.elasticsearch.org/guide/reference/modules/discovery/ec2.html) and the
   [S3 gateway](http://www.elasticsearch.org/guide/reference/modules/gateway/s3.html)
 
 As you can see, not a short list of tasks. If we would be doing them manually, we could easily spend whole afternoon with that.
@@ -205,7 +212,7 @@ in the “Instance Details” pane, and the proper security group (“elasticsea
 
 ![Check Instance Details](/tutorials/images/chef-solo/check-instance-details.png)
 
-Then you can click “Launch” to create and start your server.
+Now you can click “Launch” to create and start your server.
 
 While the server is being created in EC2, we will copy the SSH key downloaded from AWS console to the `tmp/` directory
 of this project and make sure it has proper permissions:
@@ -231,13 +238,13 @@ HOST=&lt;REPLACE WITH YOUR PUBLIC DNS&gt;
 SSH_OPTIONS="-o User=ec2-user -o IdentityFile=./tmp/elasticsearch-test.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 </pre>
 
-We'll check that we can successfully connect to the machine via secure shell:
+We'll check that we can connect to the machine via secure shell:
 
 <pre class="prettyprint lang-bash">
 ssh $SSH_OPTIONS $HOST
 </pre>
 
-You should be successfully logged into the machine. (Log out from the machine by pressing `Ctrl+D`.)
+You should be successfully logged into the machine. (Log out by pressing `Ctrl+D`.)
 
 If you have trouble in this step, double-check that the security group is properly set up, that you're using the correct SSH key, etc.
 
@@ -273,12 +280,6 @@ time ssh -t $SSH_OPTIONS $HOST "sudo bash /tmp/bootstrap.sh"
 You'll see lots of lines flying by in your terminal. We're running the [bootstrap script](https://gist.github.com/2050769#file_bootstrap.sh)
 remotely over SSH; it should take about 2 minutes.
 
-The bootstrap script will download the [_Monit_](http://community.opscode.com/cookbooks/monit) and
-[_Nginx_](http://community.opscode.com/cookbooks/nginx) cookbooks from _Opscode_ to the `/var/chef-solo/site-cookbooks/` directory
-and the [_ElasticSearch_](https://github.com/karmi/cookbook-elasticsearch) cookbook from _GitHub_, to the `/var/chef-solo/cookbooks`; it's trivial to use both “site” cookbooks, maintained by the community, and your own cookbooks together with _Chef_.
-
-The bootstrap script will also copy the `solo.rb` configuration file to `/etc/chef/solo.rb`.
-
 We're left with running the `patches.sh` script, which will fix some problems from the community cookbooks (create neccessary directories or users, etc.):
 
 <pre class="prettyprint lang-bash">
@@ -295,9 +296,9 @@ time ssh -t $SSH_OPTIONS $HOST "sudo chef-solo --node-name elasticsearch-test-1 
 </pre>
 
 This command will perform all the steps neccessary for a bare bones ElasticSearch installation; it will create the directories at
-`/usr/local/var/data/elasticsearch`, create the _elasticsearch_ user, download ElasticSearch package from _GitHub_ and run it.
+`/usr/local/var/data/elasticsearch`, create the _elasticsearch_ user, download the ElasticSearch package from _GitHub_ and run it.
 
-Let's have a look around on the server again. Is ElasticSearch, in fact, running?
+Let's have a look around on the server. Is ElasticSearch, in fact, running?
 
 <pre class="prettyprint lang-bash">
 ssh -t $SSH_OPTIONS $HOST "curl localhost:9200"
@@ -342,7 +343,7 @@ We have to edit the file and replace the following properties:
 You'll find the access and security keys on the [“Security Credentials”](https://aws-portal.amazon.com/gp/aws/securityCredentials) page,
 accessible from the drop-down menu under your name in the top right corner.
 
-All right, let's upload the updated file on the machine again:
+All right, let's upload the updated file to the machine:
 
 <pre class="prettyprint lang-bash">
 scp $SSH_OPTIONS ./bootstrap.sh ./patches.sh ./node.json ./solo.rb $HOST:/tmp
@@ -461,8 +462,8 @@ If we check the ElasticSearch service status, it should not be running:
 ssh -t $SSH_OPTIONS $HOST "sudo service elasticsearch status"
 </pre>
 
-If we check the status in _Monit_ after a while, when the next _Monit_ ticks fires off,
-it should also report the process not running and all sorts of other problems:
+If we check the status in _Monit_ after a while, when the next _Monit_ tick fires off,
+it should also report the process not running and complain about all sorts of other problems:
 
 <pre class="prettyprint lang-bash">
 ssh -t $SSH_OPTIONS $HOST "sudo service elasticsearch status"
@@ -522,8 +523,8 @@ Congratulations! By following this tutorial, you were able to:
 * Bootstrap, install and configure production-ready ElasticSearch cluster without manual intervention
 * Summarize the whole server configuration in the `node.json` file
 
-The first thing to take from this exercise is, of course, that automation beats manual labor every single time, and by a long shot.
-When you're provisioning an ElasticSearch server for the third time, it's so painless you don't even notice it.
+The first thing to take from this exercise is, of course, that **automation beats manual labor every single time**, and by a long shot.
+When you're provisioning a ElasticSearch server for the third time, it's so painless you don't even notice it.
 
 When working with a provisioning tool such as _Chef_, resist the urge to tinker with the system manually, editing configuration
 files in `vim` and installing software manually — except in clearly determined cases when you're trying something out.
@@ -539,7 +540,7 @@ file, did so, and restarted the ElasticSearch process to pick up the new configu
 The same applies for changes in the cookbook: when the ElasticSearch cookbook is updated at _GitHub_, the `bootstrap` script
 will fetch the changes, and the next `chef-solo` run will reflect them on the system.
 
-The second thing to notice is how powerful tool is _Chef_. We didn't paid too much attention to _Chef_ specifics, but let's
+The second thing to notice is **how powerful is a tool like _Chef_**. We didn't paid too much attention to _Chef_ specifics, but let's
 have a look at a small illustration. You should notice the memory settings for the JVM in the `elasticsearch-env.sh` file:
 
 <pre class="prettyprint lang-bash">
@@ -559,11 +560,20 @@ Thanks to the _Ohai_ tool, _Chef_ knows many of these [“automatic attributes�
 of the node, and can take them into consideration when provisioning the server. The ElasticSearch cookbook we have worked with makes use
 of these attribues in other places, for example when setting the `node.name`.
 
-The final conclusion of this experiment is how open the whole _Chef_ ecosystem is. We didn't have to use the hosted _Chef Server_
-product to use the other parts of its architecture. Most of the cookbooks are available on the
-[_Opscode_ community page](http://community.opscode.com/cookbooks) under permissive licenses. The _Chef_ domain specific language
-uses Ruby, a popular and expressive programming language, allowing easy changes to recipes. In fact, we can mix “vendor” cookbooks,
-which we just download from the internet, with our own cookbooks. We can fork most cookbooks at _Github_ and participate
-in the growing common knowledge of efficient infrastructure provisioning.
+The final conclusion of this experiment is **how open the whole _Chef_ ecosystem is**.
+
+We didn't have to use the hosted _Chef Server_ product to use the other parts of its architecture. The concepts and principles are the same
+between _Chef Solo_ and _Chef Server_, and allow you to reuse the most important part: the cookbooks.
+
+Most of the cookbooks are available on the [_Opscode_ community page](http://community.opscode.com/cookbooks) under permissive licenses.
+For a complex infrastructure, you're most likely to adapt cookbooks to your needs, adjusting their recipes or templates.
+As we have seen, it's trivial to mix “vendor” cookbooks with our own cookbooks:
+we have downloaded the “stock” _Monit_ and _Nginx_ cookbooks from the internet to the `/var/chef-solo/site-cookbooks/` directory,
+while cloning a custom ElasticSearch cookbook to the `/var/chef-solo/cookbooks` directory.
+
+The _Chef_ domain specific language uses Ruby, a popular and expressive programming language, which makes adjusting and customizing
+cookbooks very easy.
+We can [fork most cookbooks](https://github.com/opscode-cookbooks/) at _Github_ and participate in the
+growing common knowledge of efficient infrastructure provisioning.
 
 Enjoy your cooking!
