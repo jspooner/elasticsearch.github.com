@@ -1,19 +1,28 @@
 ---
-layout: blogpost
+layout: tutorial
 title: Deploying ElasticSearch with Chef Solo
-cat: blog
+cat: tutorials
 author: Karel Minarik
 nick: karmiq
 ---
 
 <style>
-  #content.blog a     { color: black !important; border-bottom: 1px solid black; -webkit-border-radius: 0px; -moz-border-radius: 0px; border-radius: 0px; }
-  #content.blog code  { background-color: #C6E86A; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; }
-  #content.blog img   { border: 1px solid #ccc; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; -moz-box-shadow: 5px 5px 20px #647F47; -webkit-box-shadow: 5px 5px 20px #647F47; box-shadow: 5px 5px 20px #647F47; }
-  #content.blog small { font-size: 90%; color: #11130E; }
-  #content.blog .infobox { font-size: 95%; color: #444; background-color: #F1ED81; padding: 1em 1.5em; margin-bottom: 1.5em; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; -moz-box-shadow: 5px 5px 20px #647F47; -webkit-box-shadow: 5px 5px 20px #647F47; box-shadow: 5px 5px 20px #647F47; }
-  #content.blog .infobox code { background-color: transparent !important; }
-  #content.blog .infobox pre  { background-color: transparent !important; margin: 0; padding: 0px; -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none; } 
+  #content.tutorials a
+    { color: black !important; border-bottom: 1px solid black; -webkit-border-radius: 0px; -moz-border-radius: 0px; border-radius: 0px; }
+  #content.tutorials code
+    { background-color: #C6E86A; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; }
+  #content.tutorials img
+    { border: 1px solid #ccc; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; -moz-box-shadow: 5px 5px 20px #647F47; -webkit-box-shadow: 5px 5px 20px #647F47; box-shadow: 5px 5px 20px #647F47; }
+  #content.tutorials small
+    { font-size: 90%; color: #11130E; }
+  #content.tutorials small code
+    { font-size: 90%; color: #11130E; background-color: transparent; }
+  #content.tutorials .infobox
+    { font-size: 95%; color: #444; background-color: #F1ED81; padding: 1em 1.5em; margin-bottom: 1.5em; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; -moz-box-shadow: 5px 5px 20px #647F47; -webkit-box-shadow: 5px 5px 20px #647F47; box-shadow: 5px 5px 20px #647F47; }
+  #content.tutorials .infobox code
+    { background-color: transparent !important; }
+  #content.tutorials .infobox pre
+    { background-color: transparent !important; margin: 0; padding: 0px; -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none; } 
 </style>
 
 <p>ElasticSearch is trivially easy to install and run: you just a download and extract an archive and run a simple script.</p>
