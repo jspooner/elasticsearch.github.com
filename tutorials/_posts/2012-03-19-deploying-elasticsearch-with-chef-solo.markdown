@@ -191,8 +191,10 @@ The _quicklaunch_ screen for creating the instance is pictured below:
 
 Dont' forget to download the newly created SSH key!
 
-**Important:** Don't forget to click the “Edit Details” link on the next screen and set the proper instance type (“m1.large”)
+Don't forget to click the “Edit Details” link on the next screen and set the proper instance type (“m1.large”)
 in the “Instance Details” pane, and the proper security group (“elasticsearch-test”) in the “Security Settings” pane.
+
+![Check Instance Details](/tutorials/images/chef-solo/check-instance-details.png)
 
 Then you can click “Launch” to create and start your server.
 
